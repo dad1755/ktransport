@@ -67,7 +67,7 @@ def send_whatsapp_message(phone_number, message):
         encoded_message = quote(message)
 
         # Construct the API URL
-        api_url = f"https://api.callmebot.com/whatsapp.php?phone={phone_number}&text={encoded_message}&apikey={api_key}"
+        api_url = f"https://api.callmebot.com/whatsapp.php?phone=60109409406&text={encoded_message}&apikey={api_key}"
 
         # Send the GET request
         response = requests.get(api_url)

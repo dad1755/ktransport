@@ -90,7 +90,7 @@ def submit_booking(name, phone, destination, pickup_location, adults, kids, infa
 
 
 # Title of the app
-st.title("Booking Form")
+st.title("KL Transport Booking Form")
 
 # Initialize session state for form fields if not already done
 if 'name' not in st.session_state:

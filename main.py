@@ -8,27 +8,33 @@ from email.mime.multipart import MIMEMultipart
 destinations = ["Kuala Lumpur", "Singapore", "Penang", "Malacca", "Johor Bahru", "Langkawi"]
 pickup_locations = ["KLIA", "Changi Airport", "Kuala Lumpur City Center", "Chinatown", "Penang Airport"]
 
-# Function to send an email
-def send_email(name, destination, pickup_location, adults, kids, infants, pickup_date, pickup_time, luggage, notes):
+def send_email(name, phone, destination, pickup_location, adults, kids, infants, pickup_date, pickup_time, luggage, notes):
     sender_email = st.secrets["email"]  # Get the sender email from secrets
     password = st.secrets["password"]     # Get the password from secrets
     receiver_email = st.secrets["receiver"]
 
-    # Create the email content
+    # Create the WhatsApp link
+    whatsapp_link = f"https://wa.me/{phone.replace(' ', '')}"  # Remove any spaces from the phone number
+
+    # Create the email content with HTML format
     subject = "New Booking Confirmation"
     body = f"""
-    Booking Confirmation Details:
-
-    Name: {name}
-    Destination: {destination}
-    Pickup Location: {pickup_location}
-    Adults: {adults}
-    Kids: {kids}
-    Infants: {infants}
-    Pickup Date: {pickup_date}
-    Pickup Time: {pickup_time}
-    Luggage Sizes: {luggage}
-    Notes: {notes}
+    <html>
+    <body>
+        <h2>Booking Confirmation Details:</h2>
+        <p><strong>Name:</strong> {name}</p>
+        <p><strong>Phone:</strong> <a href="{whatsapp_link}">{phone}</a></p>
+        <p><strong>Destination:</strong> {destination}</p>
+        <p><strong>Pickup Location:</strong> {pickup_location}</p>
+        <p><strong>Adults:</strong> {adults}</p>
+        <p><strong>Kids:</strong> {kids}</p>
+        <p><strong>Infants:</strong> {infants}</p>
+        <p><strong>Pickup Date:</strong> {pickup_date}</p>
+        <p><strong>Pickup Time:</strong> {pickup_time}</p>
+        <p><strong>Luggage Sizes:</strong> {luggage}</p>
+        <p><strong>Notes:</strong> {notes}</p>
+    </body>
+    </html>
     """
 
     # Create the email message
@@ -36,7 +42,7 @@ def send_email(name, destination, pickup_location, adults, kids, infants, pickup
     msg['From'] = sender_email
     msg['To'] = receiver_email
     msg['Subject'] = subject
-    msg.attach(MIMEText(body, 'plain'))
+    msg.attach(MIMEText(body, 'html'))  # Send as HTML format
 
     try:
         # Connect to the email server and send the email
@@ -44,38 +50,44 @@ def send_email(name, destination, pickup_location, adults, kids, infants, pickup
             server.starttls()  # Upgrade the connection to a secure encrypted SSL/TLS
             server.login(sender_email, password)
             server.send_message(msg)
-        st.success("Booking email sent successfully!")
+        return True  # Successful email sending
     except Exception as e:
         st.error(f"Failed to send email: {str(e)}")
+        return False  # Email sending failed
+
 
 # Function to process form submission
-def submit_booking(name, destination, pickup_location, adults, kids, infants, pickup_date, pickup_time, luggage, notes):
+def submit_booking(name, phone, destination, pickup_location, adults, kids, infants, pickup_date, pickup_time, luggage, notes):
+    # Display confirmation message
     st.success(f"Booking Confirmed for {name}!")
-    st.write(f"**Destination:** {destination}")
-    st.write(f"**Pickup Location:** {pickup_location}")
-    st.write(f"**Adults:** {adults}")
-    st.write(f"**Kids:** {kids}")
-    st.write(f"**Infants:** {infants}")
-    st.write(f"**Pickup Date:** {pickup_date}")
-    st.write(f"**Pickup Time:** {pickup_time}")
-    st.write(f"**Luggage Sizes:** {luggage}")
-    st.write(f"**Notes:** {notes}")
+    #st.write(f"**Phone:** {phone}")
+    #st.write(f"**Destination:** {destination}")
+    #st.write(f"**Pickup Location:** {pickup_location}")
+    #st.write(f"**Adults:** {adults}")
+    #st.write(f"**Kids:** {kids}")
+    #st.write(f"**Infants:** {infants}")
+    #st.write(f"**Pickup Date:** {pickup_date}")
+    #st.write(f"**Pickup Time:** {pickup_time}")
+    #st.write(f"**Luggage Sizes:** {luggage}")
+    #st.write(f"**Notes:** {notes}")
 
     # Send email
-    send_email(name, destination, pickup_location, adults, kids, infants, pickup_date, pickup_time, luggage, notes)
+    if send_email(name, phone, destination, pickup_location, adults, kids, infants, pickup_date, pickup_time, luggage, notes):
+        # Clear form fields if email sent successfully
+        st.session_state.name = ""
+        st.session_state.phone = ""
+        st.session_state.destination = ""
+        st.session_state.pickup_location = ""
+        st.session_state.adults = 0
+        st.session_state.kids = 0
+        st.session_state.infants = 0
+        st.session_state.luggage_s = 0
+        st.session_state.luggage_m = 0
+        st.session_state.luggage_l = 0
+        st.session_state.luggage_xl = 0
+        st.session_state.notes = ""
 
-    # Clear the form fields
-    st.session_state.name = ""
-    st.session_state.destination = ""
-    st.session_state.pickup_location = ""
-    st.session_state.adults = 0
-    st.session_state.kids = 0
-    st.session_state.infants = 0
-    st.session_state.luggage_s = 0
-    st.session_state.luggage_m = 0
-    st.session_state.luggage_l = 0
-    st.session_state.luggage_xl = 0
-    st.session_state.notes = ""
+
 
 # Title of the app
 st.title("Booking Form")
@@ -83,6 +95,8 @@ st.title("Booking Form")
 # Initialize session state for form fields if not already done
 if 'name' not in st.session_state:
     st.session_state.name = ""
+if 'phone' not in st.session_state:
+    st.session_state.phone = ""
 if 'destination' not in st.session_state:
     st.session_state.destination = ""
 if 'pickup_location' not in st.session_state:
@@ -107,20 +121,33 @@ if 'notes' not in st.session_state:
 # Welcome message
 st.markdown("<h4>Welcome! Please fill out the booking form below to schedule your ride.</h4>", unsafe_allow_html=True)
 
-# Container 1: Name, Destination, Pickup Location
+# Container 1: Name, Phone, Destination, Pickup Location
 with st.container():
-    st.subheader("Booking Details")
+    st.subheader("KL Transport Booking Details")
     st.session_state.name = st.text_input("Full Name", value=st.session_state.name)
+
+    # Create columns for side-by-side layout
+    col1, col2 = st.columns([1, 3])  # Adjust the width ratios as needed
+
+    with col1:
+        phone_code = st.selectbox("Phone Code", options=["+60", "+65", "+62", "+84", "+66"], index=0)  # Example codes for ASEAN countries
+
+    with col2:
+        phone_number = st.text_input("Phone Number", placeholder="Enter your phone number")
+
+    # Combine phone code and number only if the phone number is not empty
+    if phone_number.strip():  # Ensure phone number is not empty or whitespace
+        st.session_state.phone = f"{phone_code} {phone_number}"
+    else:
+        st.session_state.phone = ""  # Reset if empty
+
     st.session_state.destination = st.text_input("Destination", value=st.session_state.destination, placeholder="Enter your destination")
-    st.write(f"**Your Destination:** {st.session_state.destination}")
     st.session_state.pickup_location = st.text_input("Pickup Location", value=st.session_state.pickup_location, placeholder="Enter your pickup location")
-    st.write(f"**Selected Pickup Location:** {st.session_state.pickup_location}")
 
 # Container 2: Date and Pickup Time
 with st.container():
     st.subheader("Pickup Information")
     pickup_date = st.date_input("Pickup Date", min_value=date.today())
-    st.write(f"**Selected Pickup Date :** {pickup_date}")
 
     # Create hour and minute options for AM/PM
     hours = list(range(1, 13))  # 1 to 12
@@ -142,15 +169,22 @@ with st.container():
     # Format the pickup time as a single string
     pickup_time = f"{hour}:{minute:02d} {period}"
 
-    # Display formatted pickup time
-    st.write(f"**Selected Pickup Time:** {pickup_time}")
-
 # Container 3: Passengers
 with st.container():
     st.subheader("Passenger Details")
+    # Adults input remains below the two columns
     st.session_state.adults = st.number_input("Number of Adults", min_value=0, value=st.session_state.adults, step=1)
-    st.session_state.kids = st.number_input("Number of Kids", min_value=0, value=st.session_state.kids, step=1)
-    st.session_state.infants = st.number_input("Number of Infants", min_value=0, value=st.session_state.infants, step=1)
+
+    # Create two columns for Kids and Infants
+    col1, col2 = st.columns(2)
+
+    with col1:
+        st.session_state.kids = st.number_input("Number of Kids", min_value=0, value=st.session_state.kids, step=1)
+
+    with col2:
+        st.session_state.infants = st.number_input("Number of Infants", min_value=0, value=st.session_state.infants, step=1)
+
+
 
 # Container 4: Luggage
 with st.container():
@@ -177,8 +211,13 @@ submit_button = st.button(label="Submit Booking")
 
 # Handle form submission
 if submit_button:
-    if not st.session_state.name:
+    # Check for empty fields and ensure at least one adult is present
+    if not st.session_state.name or not st.session_state.phone.strip():  # Check for empty name and phone
         st.error("Please fill out all required fields.")
+    elif st.session_state.adults < 1:  # Check if at least one adult is selected
+        st.error("Please specify at least one adult.")
     else:
-        submit_booking(st.session_state.name, st.session_state.destination, st.session_state.pickup_location,
+        # Call submit_booking function with all parameters
+        submit_booking(st.session_state.name, st.session_state.phone, st.session_state.destination, st.session_state.pickup_location,
                        st.session_state.adults, st.session_state.kids, st.session_state.infants, pickup_date, pickup_time, luggage, st.session_state.notes)
+        st.rerun()

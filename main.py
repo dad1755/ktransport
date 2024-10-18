@@ -3,8 +3,7 @@ from datetime import date
 import smtplib
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
-import requests
-from urllib.parse import quote
+from urllib.parse import quote  # For URL encoding the message
 
 # Sample data for destinations and pickup locations
 destinations = ["Kuala Lumpur", "Singapore", "Penang", "Malacca", "Johor Bahru", "Langkawi"]
@@ -60,40 +59,36 @@ def send_email(name, phone, destination, pickup_location, adults, kids, infants,
         st.error(f"Failed to send email: {str(e)}")
         return False  # Email sending failed
 
-def send_whatsapp_message(phone_number, message):
-    api_key = "5938440"  # Your CallMeBot API key
+def send_whatsapp_message(phone, message):
+    # Get the phone number and API key from secrets
+    recipient_number = st.secrets["whatsapp_number"]  # Phone number with country code
+    api_key = st.secrets["api_key"]  # Your CallMeBot API key
+
+    # URL encode the message
+    encoded_message = quote(message)
+
+    # Construct the API URL
+    api_url = f"https://api.callmebot.com/whatsapp.php?phone={recipient_number}&text={encoded_message}&apikey={api_key}"
+
     try:
-        # URL encode the message
-        encoded_message = quote(message)
-
-        # Construct the API URL
-        api_url = f"https://api.callmebot.com/whatsapp.php?phone=60109409406&text={encoded_message}&apikey={api_key}"
-
-        # Send the GET request
-        response = requests.get(api_url)
-
-        # Check if message is sent
+        # Sending the WhatsApp message via the API (this can be a GET request in practice)
+        response = st.experimental_get_request(api_url)
         if response.status_code == 200:
-            st.success("WhatsApp message sent successfully!")
+            return True
         else:
-            st.error(f"Failed to send WhatsApp message. Status code: {response.status_code}")
-
+            st.error(f"Failed to send WhatsApp message: {response.text}")
+            return False
     except Exception as e:
-        st.error(f"An error occurred while sending WhatsApp message: {e}")
+        st.error(f"Error sending WhatsApp message: {str(e)}")
+        return False
 
 # Function to process form submission
 def submit_booking(name, phone, destination, pickup_location, adults, kids, infants, pickup_date, pickup_time, luggage, notes):
     # Display confirmation message
     st.success(f"Booking Confirmed for {name}!")
-
-    # Prepare the WhatsApp message
-    whatsapp_message = f"Booking Confirmed!\nName: {name}\nPhone: {phone}\nDestination: {destination}\nPickup Location: {pickup_location}\nAdults: {adults}\nKids: {kids}\nInfants: {infants}\nPickup Date: {pickup_date}\nPickup Time: {pickup_time}\nLuggage Sizes: {luggage}\nNotes: {notes}"
     
     # Send email
     if send_email(name, phone, destination, pickup_location, adults, kids, infants, pickup_date, pickup_time, luggage, notes):
-        # Send WhatsApp message
-        send_whatsapp_message(phone.replace(" ", ""), whatsapp_message)
-
         # Clear form fields if email sent successfully
         st.session_state.name = ""
         st.session_state.phone = ""
@@ -107,6 +102,12 @@ def submit_booking(name, phone, destination, pickup_location, adults, kids, infa
         st.session_state.luggage_l = 0
         st.session_state.luggage_xl = 0
         st.session_state.notes = ""
+
+        # Prepare the message to send via WhatsApp
+        whatsapp_message = f"New Booking: {name}, Phone: {phone}, Destination: {destination}, Pickup Location: {pickup_location}, Adults: {adults}, Kids: {kids}, Infants: {infants}, Pickup Date: {pickup_date}, Pickup Time: {pickup_time}, Luggage: {luggage}, Notes: {notes}"
+
+        # Send WhatsApp message
+        send_whatsapp_message(phone, whatsapp_message)
 
 # Title of the app
 st.title("KL Transport Booking Form")

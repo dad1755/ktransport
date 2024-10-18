@@ -3,6 +3,8 @@ from datetime import date
 import smtplib
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
+import requests
+from urllib.parse import quote
 
 # Sample data for destinations and pickup locations
 destinations = ["Kuala Lumpur", "Singapore", "Penang", "Malacca", "Johor Bahru", "Langkawi"]
@@ -58,24 +60,40 @@ def send_email(name, phone, destination, pickup_location, adults, kids, infants,
         st.error(f"Failed to send email: {str(e)}")
         return False  # Email sending failed
 
+def send_whatsapp_message(phone_number, message):
+    api_key = "5938440"  # Your CallMeBot API key
+    try:
+        # URL encode the message
+        encoded_message = quote(message)
+
+        # Construct the API URL
+        api_url = f"https://api.callmebot.com/whatsapp.php?phone={phone_number}&text={encoded_message}&apikey={api_key}"
+
+        # Send the GET request
+        response = requests.get(api_url)
+
+        # Check if message is sent
+        if response.status_code == 200:
+            st.success("WhatsApp message sent successfully!")
+        else:
+            st.error(f"Failed to send WhatsApp message. Status code: {response.status_code}")
+
+    except Exception as e:
+        st.error(f"An error occurred while sending WhatsApp message: {e}")
 
 # Function to process form submission
 def submit_booking(name, phone, destination, pickup_location, adults, kids, infants, pickup_date, pickup_time, luggage, notes):
     # Display confirmation message
     st.success(f"Booking Confirmed for {name}!")
-    #st.write(f"**Phone:** {phone}")
-    #st.write(f"**Destination:** {destination}")
-    #st.write(f"**Pickup Location:** {pickup_location}")
-    #st.write(f"**Adults:** {adults}")
-    #st.write(f"**Kids:** {kids}")
-    #st.write(f"**Infants:** {infants}")
-    #st.write(f"**Pickup Date:** {pickup_date}")
-    #st.write(f"**Pickup Time:** {pickup_time}")
-    #st.write(f"**Luggage Sizes:** {luggage}")
-    #st.write(f"**Notes:** {notes}")
 
+    # Prepare the WhatsApp message
+    whatsapp_message = f"Booking Confirmed!\nName: {name}\nPhone: {phone}\nDestination: {destination}\nPickup Location: {pickup_location}\nAdults: {adults}\nKids: {kids}\nInfants: {infants}\nPickup Date: {pickup_date}\nPickup Time: {pickup_time}\nLuggage Sizes: {luggage}\nNotes: {notes}"
+    
     # Send email
     if send_email(name, phone, destination, pickup_location, adults, kids, infants, pickup_date, pickup_time, luggage, notes):
+        # Send WhatsApp message
+        send_whatsapp_message(phone.replace(" ", ""), whatsapp_message)
+
         # Clear form fields if email sent successfully
         st.session_state.name = ""
         st.session_state.phone = ""
@@ -89,8 +107,6 @@ def submit_booking(name, phone, destination, pickup_location, adults, kids, infa
         st.session_state.luggage_l = 0
         st.session_state.luggage_xl = 0
         st.session_state.notes = ""
-
-
 
 # Title of the app
 st.title("KL Transport Booking Form")
@@ -187,8 +203,6 @@ with st.container():
     with col2:
         st.session_state.infants = st.number_input("Number of Infants", min_value=0, value=st.session_state.infants, step=1)
 
-
-
 # Container 4: Luggage
 with st.container():
     st.subheader("Luggage Information")
@@ -223,7 +237,7 @@ if submit_button:
         # Call submit_booking function with all parameters
         submit_booking(st.session_state.name, st.session_state.phone, st.session_state.destination, st.session_state.pickup_location,
                        st.session_state.adults, st.session_state.kids, st.session_state.infants, pickup_date, pickup_time, luggage, st.session_state.notes)
-              # Display a clickable Facebook link after successful submission
+        # Display a clickable Facebook link after successful submission
         st.markdown("""
             <p>Thank you for your submission! You can follow us on <a href="https://web.facebook.com/profile.php?id=100094313717882" target="_blank">Facebook</a>.</p>
         """, unsafe_allow_html=True)

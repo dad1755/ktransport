@@ -4,6 +4,8 @@ import smtplib
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 from urllib.parse import quote  # For URL encoding the message
+import requests
+
 
 # Sample data for destinations and pickup locations
 destinations = ["Kuala Lumpur", "Singapore", "Penang", "Malacca", "Johor Bahru", "Langkawi"]
@@ -71,8 +73,8 @@ def send_whatsapp_message(phone, message):
     api_url = f"https://api.callmebot.com/whatsapp.php?phone={recipient_number}&text={encoded_message}&apikey={api_key}"
 
     try:
-        # Sending the WhatsApp message via the API (this can be a GET request in practice)
-        response = st.experimental_get_request(api_url)
+        # Sending the WhatsApp message via the API using requests
+        response = requests.get(api_url)  # Perform a GET request
         if response.status_code == 200:
             return True
         else:
@@ -81,6 +83,7 @@ def send_whatsapp_message(phone, message):
     except Exception as e:
         st.error(f"Error sending WhatsApp message: {str(e)}")
         return False
+
 
 # Function to process form submission
 def submit_booking(name, phone, destination, pickup_location, adults, kids, infants, pickup_date, pickup_time, luggage, notes):

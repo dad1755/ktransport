@@ -65,7 +65,7 @@ def submit_booking(name, destination, pickup_location, adults, kids, infants, pi
     send_email(name, destination, pickup_location, adults, kids, infants, pickup_date, pickup_time, luggage, notes)
 
 # Title of the app
-st.title("Booking Form")
+st.title("KL Transport Booking Form")
 
 # Welcome message
 st.markdown("<h4>Welcome! Please fill out the booking form below to schedule your ride.</h4>", unsafe_allow_html=True)

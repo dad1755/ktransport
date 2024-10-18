@@ -85,7 +85,6 @@ def send_whatsapp_message(phone, message):
         return False
 
 
-# Function to process form submission
 def submit_booking(name, phone, destination, pickup_location, adults, kids, infants, pickup_date, pickup_time, luggage, notes):
     # Display confirmation message
     st.success(f"Booking Confirmed for {name}!")
@@ -106,11 +105,22 @@ def submit_booking(name, phone, destination, pickup_location, adults, kids, infa
         st.session_state.luggage_xl = 0
         st.session_state.notes = ""
 
-        # Prepare the message to send via WhatsApp
-        whatsapp_message = f"New Booking: {name}, Phone: {phone}, Destination: {destination}, Pickup Location: {pickup_location}, Adults: {adults}, Kids: {kids}, Infants: {infants}, Pickup Date: {pickup_date}, Pickup Time: {pickup_time}, Luggage: {luggage}, Notes: {notes}"
+        # Prepare the formatted message to send via WhatsApp
+        whatsapp_message = (
+            f"New Booking: {name},\n"
+            f"Phone: {phone},\n"
+            f"Destination: {destination},\n"
+            f"Pickup Location: {pickup_location},\n"
+            f"Adults: {adults}, Kids: {kids}, Infants: {infants},\n"
+            f"Pickup Date: {pickup_date},\n"
+            f"Pickup Time: {pickup_time},\n"
+            f"Luggage: {{S: {luggage['S']}, M: {luggage['M']}, L: {luggage['L']}, XL: {luggage['XL']}}},\n"
+            f"Notes: {notes}"
+        )
 
         # Send WhatsApp message
         send_whatsapp_message(phone, whatsapp_message)
+
 
 # Title of the app
 st.title("KL Transport Booking Form")

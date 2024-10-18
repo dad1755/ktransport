@@ -12,7 +12,7 @@ pickup_locations = ["KLIA", "Changi Airport", "Kuala Lumpur City Center", "China
 def send_email(name, destination, pickup_location, adults, kids, infants, pickup_date, pickup_time, luggage, notes):
     sender_email = st.secrets["email"]  # Get the sender email from secrets
     password = st.secrets["password"]     # Get the password from secrets
-    receiver_email = "dad1755@gmail.com"
+    receiver_email = st.secrets["receiver"]
 
     # Create the email content
     subject = "New Booking Confirmation"

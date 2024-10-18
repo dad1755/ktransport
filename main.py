@@ -220,4 +220,7 @@ if submit_button:
         # Call submit_booking function with all parameters
         submit_booking(st.session_state.name, st.session_state.phone, st.session_state.destination, st.session_state.pickup_location,
                        st.session_state.adults, st.session_state.kids, st.session_state.infants, pickup_date, pickup_time, luggage, st.session_state.notes)
-        st.rerun()
+              # Display a clickable Facebook link after successful submission
+        st.markdown("""
+            <p>Thank you for your submission! You can follow us on <a href="https://web.facebook.com/profile.php?id=100094313717882" target="_blank">Facebook</a>.</p>
+        """, unsafe_allow_html=True)

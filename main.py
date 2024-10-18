@@ -8,6 +8,9 @@ from email.mime.multipart import MIMEMultipart
 destinations = ["Kuala Lumpur", "Singapore", "Penang", "Malacca", "Johor Bahru", "Langkawi"]
 pickup_locations = ["KLIA", "Changi Airport", "Kuala Lumpur City Center", "Chinatown", "Penang Airport"]
 
+# Set page configuration
+st.set_page_config(page_title="KLTransport", page_icon="💬", layout="centered")
+
 def send_email(name, phone, destination, pickup_location, adults, kids, infants, pickup_date, pickup_time, luggage, notes):
     sender_email = st.secrets["email"]  # Get the sender email from secrets
     password = st.secrets["password"]     # Get the password from secrets
